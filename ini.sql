@@ -14,29 +14,29 @@ DROP SEQUENCE seq_posudba_id;
 
 DROP SEQUENCE seq_film_id;
 
-DROP SEQUENCE seq_clan_id;
+DROP SEQUENCE seq_clan_id;   --brise sve da mozes normalno startat--
 
 CREATE TABLE clan (
-    id_clan        NUMBER PRIMARY KEY,
+    id_clan        NUMBER PRIMARY KEY,  --"tablica clan koja ima id_clan, koja prima broj i primary key"--
     ime            VARCHAR2(30) NOT NULL,
     prezime        VARCHAR2(30) NOT NULL,
     kontakt        VARCHAR2(50),
     datum_clanstva DATE DEFAULT sysdate NOT NULL,
-    created_at     DATE, /*kad je stvoren*/
+    created_at     DATE, /*kad je stvoren*/   --audit polja--
     created_by     VARCHAR2(30), /*tko ga je stvorio*/
     updated_at     DATE, /*kad je mijenjan*/
     updated_by     VARCHAR2(30) /*tko ga je mijenjao*/
 );
 
-CREATE SEQUENCE seq_clan_id START WITH 1 INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_clan_id START WITH 1 INCREMENT BY 1 NOCACHE; --stvaramo sekvencu i inkrementiramo za 1--
 
-CREATE OR REPLACE TRIGGER trg_clan_biub BEFORE
-    INSERT OR UPDATE ON clan
+CREATE OR REPLACE TRIGGER trg_clan_biub BEFORE --stvaramo before insert and update trigger za tablicu clan--
+    INSERT OR UPDATE ON clan --prije unosenja ili updatanja tablice clan za svaki red..--
     FOR EACH ROW
 BEGIN
     IF inserting THEN
-        :new.id_clan := seq_clan_id.nextval;
-        :new.created_at := sysdate;
+        :new.id_clan := seq_clan_id.nextval; --da ne pisemo svaki put na pocetak seq_clan_id.nextval, nek da ga automatski uzme--
+        :new.created_at := sysdate; 
         :new.created_by := user;
     END IF;
 
@@ -116,3 +116,6 @@ BEGIN
 
 END;
 /
+
+
+
