@@ -1,5 +1,7 @@
 
 --router.pks
+--prima 2 parametara, p_in, p_out
+--raisea iznimku
 CREATE OR REPLACE NONEDITIONABLE PACKAGE router AS
     
     e_iznimka EXCEPTION;
@@ -13,6 +15,7 @@ END router;
 /
 
 --router.pkb
+--implementacija router.pks
 CREATE OR REPLACE PACKAGE BODY router AS
 
     PROCEDURE p_main (
@@ -22,16 +25,15 @@ CREATE OR REPLACE PACKAGE BODY router AS
 
         l_obj       json_object_t;
         l_str       VARCHAR2(4000);
-        l_statement VARCHAR2(120) := 'ALTER SESSION SET NLS_NUMBERIC_CHARACTERS = ' || ''',.''';
+        l_statement VARCHAR2(120) := 'ALTER SESSION SET NLS_NUMERIC_CHARACTERS = ' || ''',.''';
         l_procedura VARCHAR2(40);
     BEGIN
-        l_obj := json_object_t(p_in);
-        l_str := l_obj.to_clob;
-        l_procedura := JSON_VALUE(l_str, '$.procedura' RETURNING VARCHAR2);
-        CASE l_procedura
-        --LOGIN
+        l_obj := json_object_t(p_in); --pretvaranje ulaznog teksta u JSON format
+        l_str := l_obj.to_clob(); 
+        l_procedura := JSON_VALUE(l_str, '$.procedura' RETURNING VARCHAR2); --procita ime iz "procedura"
+        CASE l_procedura --ovisno o proceduri poziva drugu proceduru iz paketa dohvati ili podaci
             WHEN 'p_login' THEN
-                dohvati.p_login(l_obj);
+                dohvati.p_login(l_obj); --metoda
             WHEN 'p_test' THEN
                 dohvati.p_test(l_obj);
             WHEN 'p_clan_po_prezimenu' THEN
@@ -45,21 +47,21 @@ CREATE OR REPLACE PACKAGE BODY router AS
             WHEN 'p_vrati_film' THEN
                 podaci.p_vrati_film(l_obj);
             WHEN 'p_filmovi_po_zanru' THEN
-            dohvati.p_filmovi_po_zanru(l_obj);
+                dohvati.p_filmovi_po_zanru(l_obj);
             WHEN 'p_obrisi_clana' THEN
-            podaci.p_obrisi_clana(l_obj);
+                podaci.p_obrisi_clana(l_obj);
             WHEN 'p_uredi_clana' THEN
-            podaci.p_uredi_clana(l_obj);
+                podaci.p_uredi_clana(l_obj);
 
             ELSE
                 l_obj.put('h_message', 'Nepoznata metoda ' || l_procedura);
                 l_obj.put('h_errcode', 997);
         END CASE;
 
-        p_out := l_obj.to_clob;
+        p_out := l_obj.to_clob();
     EXCEPTION
         WHEN e_iznimka THEN
-            p_out := l_obj.to_clob;
+            p_out := l_obj.to_clob();
         WHEN OTHERS THEN
             DECLARE
                 l_error PLS_INTEGER := sqlcode;
@@ -77,13 +79,15 @@ CREATE OR REPLACE PACKAGE BODY router AS
                 END CASE;
             END;
 
-            p_out := l_obj.to_clob;
+            p_out := l_obj.to_clob();
     END p_main;
 
 END router;
 /
 
 --filter.pks
+--3 funkcije, f_check_clan, f_check_film, f_check_posudba
+--prima i vraca json, vraca boolean
 CREATE OR REPLACE PACKAGE filter AS
     e_iznimka EXCEPTION;
     PRAGMA exception_init ( e_iznimka, -20001 );
@@ -97,6 +101,7 @@ END filter;
 
 
 --filter.pkb
+--implementacija filter.pks
 CREATE OR REPLACE PACKAGE BODY filter AS
 
     e_iznimka EXCEPTION;
@@ -107,15 +112,18 @@ CREATE OR REPLACE PACKAGE BODY filter AS
         l_obj     JSON_OBJECT_T; 
         l_id      NUMBER;
         l_str     VARCHAR2(1000);
-        l_clan clan%rowtype;
-        l_search varchar2(100);
-        l_page number;
+        l_clan    clan%rowtype;
+        l_search  varchar2(100);
+        l_page    number;
         l_perpage number;
     BEGIN
         l_obj := json_object_t(in_json);
-        l_str := in_json.TO_STRING;
+        l_str := in_json.TO_STRING();
         
     SELECT
+    
+    --punjenje polja--
+    
     JSON_VALUE(l_str, '$.id_clan' ),
         JSON_VALUE(l_str, '$.ime'),
         JSON_VALUE(l_str, '$.prezime' ),
@@ -132,18 +140,18 @@ CREATE OR REPLACE PACKAGE BODY filter AS
     FROM dual;
             
         IF nvl(
-            l_clan.ime,
-            ' '
-        ) = ' ' THEN
-            l_obj.put('h_message', 'Molimo unesite ime člana');
+            l_clan.ime, 
+            ''
+        ) = '' THEN 
+            l_obj.put('h_message', 'Molimo unesite ime člana'); --ne smije bit prazan--
             l_obj.put('h_errcode', 101);
             RAISE e_iznimka;
         END IF;
 
         IF nvl(
             l_clan.prezime,
-            ' '
-        ) = ' ' THEN
+            ''
+        ) = '' THEN
             l_obj.put('h_message', 'Molimo unesite prezime člana');
             l_obj.put('h_errcode', 102);
             RAISE e_iznimka;
@@ -151,8 +159,8 @@ CREATE OR REPLACE PACKAGE BODY filter AS
 
         IF nvl(
             l_clan.kontakt,
-            ' '
-        ) = ' ' THEN
+            ''
+        ) = '' THEN
             l_obj.put('h_message', 'Molimo unesite kontakt (e-mail ili mob) člana');
             l_obj.put('h_errcode', 103);
             RAISE e_iznimka;
@@ -187,7 +195,7 @@ CREATE OR REPLACE PACKAGE BODY filter AS
         
     BEGIN
         l_obj := json_object_t(in_json);
-        l_str := l_obj.TO_STRING;
+        l_str := l_obj.TO_STRING();
         
     SELECT
     JSON_VALUE(l_str, '$.id_film' ),
@@ -209,8 +217,11 @@ CREATE OR REPLACE PACKAGE BODY filter AS
         
      IF nvl(
             l_film.naslov,
-            ' '
-        ) = ' ' THEN
+            ''
+        ) = '' THEN
+        
+        --IF l_film.naslov IS NULL THEN...
+        
             l_obj.put('h_message', 'Molimo unesite naslov filma');
             l_obj.put('h_errcode', 201);
             RAISE e_iznimka;
@@ -218,14 +229,14 @@ CREATE OR REPLACE PACKAGE BODY filter AS
 
         IF nvl(
             l_film.zanr,
-            ' '
-        ) = ' ' THEN
+            ''
+        ) = '' THEN
             l_obj.put('h_message', 'Molimo unesite žanr filma');
             l_obj.put('h_errcode', 202);
             RAISE e_iznimka;
         END IF;
 
-        IF l_film.godina IS NULL
+        IF l_film.godina IS NULL 
            OR l_film.godina < 1890 THEN
             l_obj.put('h_message', 'Neispravna godina (>=1890)');
             l_obj.put('h_errcode', 203);
@@ -266,7 +277,7 @@ CREATE OR REPLACE PACKAGE BODY filter AS
         l_dat_pov VARCHAR2(20);
     BEGIN
         l_obj := JSON_OBJECT_T(in_json);  
-        l_str := l_obj.TO_STRING;
+        l_str := l_obj.TO_STRING();
         
         SELECT
             JSON_VALUE(l_str, '$.id_posudba' ),
