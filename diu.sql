@@ -1,4 +1,4 @@
-/*INSERTI*/
+-------------------INSERTI-----------------------
 INSERT INTO clan (
     ime,
     prezime,
@@ -8,6 +8,7 @@ INSERT INTO clan (
            'Grabaric',
            'presvetli@gmail.com',
            sysdate );
+/*"U tablicu clan unesi ime, prezime, kontakt, datum_clanstva vrijednosti te i te.."*/
 
 INSERT INTO film (
     naslov,
@@ -110,6 +111,7 @@ INSERT INTO posudba (
 ) VALUES ( sysdate - 30,
            4,
            4 );
+--"sysdate-30" -> od system datuma se oduzme 30 dana-- 
 
 INSERT INTO clan (
     ime,
@@ -279,11 +281,18 @@ INSERT INTO posudba (
            10,
            10 );
 
+--Ukupno inserta: 30--
+
+-------------------UPDATE-----------------------
+
 UPDATE clan
 SET
     kontakt = '098338333'
 WHERE
     id_clan = 5;
+
+--"Gdje je id_clan = 5, u tablici clan izmjeni kontakt na taj broj"--
+
 
 UPDATE film
 SET
@@ -308,10 +317,14 @@ SET
     zanr = 'Triler'
 WHERE
     naslov = 'Joker';
+    
+--Ukupno updateova: 5--
 
 DELETE FROM posudba
 WHERE
     id_posudba = 109;
+    
+--"Obriši iz tablice posudba sve retke gdje je id_posudba 109"--
 
 DELETE FROM posudba
 WHERE
@@ -332,3 +345,5 @@ WHERE
 DELETE FROM clan
 WHERE
     prezime = 'Zoric';
+    
+--Ukupno deleteova: 5--
