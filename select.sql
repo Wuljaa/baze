@@ -38,8 +38,8 @@ SELECT
     p.dat_posudba
 FROM
     posudba p
-    INNER JOIN clan c ON p.id_clan = c.id_clan
-    INNER JOIN film f ON p.id_film = f.id_film;
+    INNER JOIN clan c ON p.id_clan = c.id_clan --"Za svaku posudbu (p) nađi člana (c) čiji je id_clan isti kao u posudbi, i spoji njihove podatke zajedno."-- --vraca iste vrijednosti iz jedne i druge tablice--
+    INNER JOIN film f ON p.id_film = f.id_film; --"Za svaki posudbu (p) nađi film (f) čiji je id_film isti kao u posudbi, i spoji njihove podatke zajedno."--
 
 /*Svi clanovi i njihovi filmovi*/
 SELECT
@@ -48,8 +48,8 @@ SELECT
     f.naslov
 FROM
     clan  c
-    LEFT JOIN posudba p ON c.id_clan = p.id_clan
-    LEFT JOIN film    f ON p.id_film = f.id_film;
+    LEFT JOIN posudba p ON c.id_clan = p.id_clan --"Za svaki clan (c) posudbu p ciji je id_clan isti kao u tablici clan i spoji podatke zajedno."
+    LEFT JOIN film    f ON p.id_film = f.id_film; 
 
 /*Svi filmovi i njihovi članovi*/
 SELECT
